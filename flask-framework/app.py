@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect,abort
 import requests
 import simplejson as json
 import pandas as pd
@@ -27,6 +27,8 @@ def about():
     api_key = 'QQjndsVJFRSLguryrfA2'
     req = {'start_date':start_date,'end_date': end_date,'api_key': api_key}
     data = requests.get(serviceurl_symbol,params = req)
+    if not data.ok:
+        abort(404)
     js = json.loads(data.content)
     #prepare data in pandas dataframe
     df = pd.DataFrame(js['dataset']['data'],columns = js['dataset']['column_names'])
@@ -66,6 +68,10 @@ def about():
     return render_template('about.html',ticker=symbol,script=script,div=div,\
                            resources=resources,start_date=start_date,end_date=end_date,\
                           features=features)
-    
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
 if __name__ == '__main__':
   app.run(port=33507)
